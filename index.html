@@ -43,44 +43,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .copyright{text-align:center;font-size:10px;color:#B8956A;padding:0 22px 18px;font-family:-apple-system,sans-serif;letter-spacing:.3px}
 
 /* ── DESKTOP LAYOUT ─────────────────────────────────────── */
-.app.desktop{max-width:860px}
-.app.desktop .content{overflow-y:auto;padding-bottom:120px}
-
-/* Cover art: wider, less tall */
-.app.desktop .cover-art{max-height:36vh}
+.app.desktop{max-width:720px}
+.app.desktop .content{padding-bottom:32px}
+.app.desktop .cover-art{max-height:38vh}
 .app.desktop .cover-room-name{font-size:36px}
-
-/* Player section becomes fixed bottom bar */
-.app.desktop .player-section{
-  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
-  width:860px;max-width:100vw;
-  background:#EDE0C4;border-top:2px solid #C4A882;
-  display:grid;
-  grid-template-columns:1fr 2fr 1fr;
-  grid-template-areas:"info center nav";
-  align-items:center;
-  padding:10px 28px 14px;
-  gap:16px;z-index:200;box-sizing:border-box;
-}
-.app.desktop .room-info{grid-area:info;padding:0;min-width:0}
-.app.desktop .room-name-lg{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.app.desktop .room-sub-line{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.app.desktop .ps-center{grid-area:center;gap:6px}
-.app.desktop .controls-main{padding:0;gap:20px}
-.app.desktop .play-btn{width:52px;height:52px;font-size:22px}
-.app.desktop .skip-btn{width:44px;height:44px}
-.app.desktop .prog-section{padding:0;width:100%}
-.app.desktop .ps-right{grid-area:nav;padding:0;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
-.app.desktop .room-nav{flex-direction:column;gap:5px;width:100%}
-.app.desktop .nbtn{min-height:32px;font-size:11px;padding:0 10px}
-.app.desktop .speak-badge{padding:0;justify-content:flex-end}
-
-/* Browse section: wider padding on desktop */
-.app.desktop .room-grid{grid-template-columns:repeat(5,1fr);padding:18px 32px 0}
-.app.desktop .tip{margin:16px 32px 0}
-.app.desktop .show-text-btn{width:calc(100% - 64px);margin:14px 32px 0}
+.app.desktop .player-section{padding:0 32px}
+.app.desktop .room-name-lg{font-size:22px}
+.app.desktop .controls-main{gap:40px;padding:26px 0 0}
+.app.desktop .play-btn{width:76px;height:76px;font-size:32px}
+.app.desktop .skip-btn{width:58px;height:58px}
+.app.desktop .ps-right{padding:14px 0 0}
+.app.desktop .nbtn{min-height:48px;font-size:14px}
+.app.desktop .room-grid{grid-template-columns:repeat(5,1fr);padding:22px 32px 0;gap:8px}
+.app.desktop .rg{min-height:56px;font-size:11px;border-radius:10px}
+.app.desktop .tip{margin:20px 32px 0}
+.app.desktop .show-text-btn{width:calc(100% - 64px);margin:16px 32px 0;padding:14px;font-size:14px}
 .app.desktop .room-text-wrap{margin:0 32px}
-.app.desktop .bottom-pad{height:20px}
+.app.desktop .copyright{padding:0 32px 24px}
+.app.desktop .bottom-pad{height:16px}
 
 /* TOP BAR */
 .top-bar{flex-shrink:0;background:#EDE0C4;padding:env(safe-area-inset-top,0px) 0 0;border-bottom:1px solid #D4B896}
