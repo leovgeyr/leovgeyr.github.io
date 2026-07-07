@@ -17,26 +17,47 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* APP CONTAINER — zentriert, phone-Breite */
 .app{width:100%;max-width:430px;height:100%;background:#F5EDD9;display:flex;flex-direction:column;overflow:hidden}
 
-/* DESKTOP MODE */
-.app.desktop{max-width:100%;flex-direction:column}
-.app.desktop .content{display:grid;grid-template-columns:420px 1fr;grid-template-rows:1fr;align-items:start;height:100%;overflow:hidden}
-.app.desktop .cover-art{position:sticky;top:0;height:100vh;max-height:100%;aspect-ratio:unset;grid-row:1;grid-column:1}
-.app.desktop .cover-room-name{font-size:38px}
-.app.desktop .right-col{grid-column:2;grid-row:1;overflow-y:auto;height:100vh;padding-bottom:32px}
-.app.desktop .room-info{padding:22px 28px 0}
-.app.desktop .room-name-lg{font-size:26px}
-.app.desktop .prog-section{padding:20px 28px 0}
-.app.desktop .controls-main{padding:24px 28px 0;gap:36px}
-.app.desktop .play-btn{width:76px;height:76px;font-size:32px}
-.app.desktop .skip-btn{width:60px;height:60px}
-.app.desktop .room-nav{padding:18px 28px 0}
-.app.desktop .nbtn{font-size:14px}
-.app.desktop .room-grid{grid-template-columns:repeat(5,1fr);padding:16px 28px 0}
-.app.desktop .tip{margin:18px 28px 0}
-.app.desktop .show-text-btn{width:calc(100% - 56px);margin:16px 28px 0}
-.app.desktop .room-text-wrap{margin:0 28px}
-.app.desktop .speak-badge{padding:10px 28px 0}
-.app.desktop .bottom-pad{height:32px}
+/* MOBILE: player-section inline in scroll flow */
+.browse-col{display:contents}
+.player-section{padding:0}
+.ps-left,.ps-right{display:none}
+.ps-room-name,.ps-sub{display:none}
+
+/* DESKTOP MODE — Spotify-style fixed bottom player bar */
+.app.desktop{max-width:860px;height:100%}
+.app.desktop .content{display:flex;flex-direction:column;height:100%;overflow:hidden}
+.app.desktop .cover-art{max-height:38vh;aspect-ratio:unset;width:100%;flex-shrink:0}
+.app.desktop .cover-room-name{font-size:36px}
+.app.desktop .browse-col{display:flex;flex-direction:column;flex:1;overflow-y:auto;padding-bottom:110px}
+.app.desktop .room-info{padding:18px 32px 0}
+.app.desktop .room-name-lg{font-size:24px}
+.app.desktop .room-grid{grid-template-columns:repeat(5,1fr);padding:14px 32px 0}
+.app.desktop .tip{margin:16px 32px 0}
+.app.desktop .show-text-btn{width:calc(100% - 64px);margin:14px 32px 0}
+.app.desktop .room-text-wrap{margin:0 32px}
+.app.desktop .bottom-pad{height:20px}
+
+/* DESKTOP: fixed bottom player bar */
+.app.desktop .player-section{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:860px;max-width:100%;
+  background:#EDE0C4;border-top:2px solid #C4A882;
+  display:flex;align-items:center;gap:0;
+  padding:10px 24px 14px;z-index:200;
+  box-sizing:border-box;
+}
+.app.desktop .ps-left{display:flex;flex-direction:column;justify-content:center;flex:1;min-width:0;padding-right:16px}
+.app.desktop .ps-room-name{display:block;font-size:14px;font-weight:700;color:#2C1810;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.app.desktop .ps-sub{display:block;font-size:11px;color:#8B6F47;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app.desktop .ps-center{display:flex;flex-direction:column;align-items:center;gap:6px;flex:2}
+.app.desktop .controls-main{padding:0;gap:20px}
+.app.desktop .play-btn{width:52px;height:52px;font-size:22px}
+.app.desktop .skip-btn{width:44px;height:44px}
+.app.desktop .prog-section{padding:0;width:100%}
+.app.desktop .ps-right{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;flex:1;gap:6px;padding-left:16px}
+.app.desktop .room-nav{padding:0;gap:6px;flex-direction:column;width:100%}
+.app.desktop .nbtn{min-height:34px;font-size:11px;padding:0 10px}
+.app.desktop .speak-badge{padding:0;justify-content:flex-end}
 
 /* TOP BAR */
 .top-bar{flex-shrink:0;background:#EDE0C4;padding:env(safe-area-inset-top,0px) 0 0;border-bottom:1px solid #D4B896}
@@ -190,62 +211,68 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="cover-room-name" id="roomTitleName"></div>
     </div>
 
-    <div class="right-col">
-    <div class="room-info">
-      <div class="room-name-lg" id="pName"></div>
-      <div class="room-sub-line" id="roomSub"></div>
-    </div>
-
-    <div class="prog-section">
-      <div class="prog-bg" id="progBg">
-        <div class="prog-fill" id="progFill"><div class="prog-dot"></div></div>
+    <!-- Scrollable browse area (room grid, tip, text) -->
+    <div class="browse-col">
+      <div class="room-info">
+        <div class="room-name-lg" id="pName"></div>
+        <div class="room-sub-line" id="roomSub"></div>
       </div>
-      <div class="time-row">
-        <span id="elapsed">0:00</span>
-        <span class="p-lang-lbl" id="pLang"></span>
-        <span id="totalTime">0:00</span>
+      <div class="room-grid" id="roomGrid"></div>
+      <div class="tip"><span style="font-size:15px;flex-shrink:0">&#128161;</span><span id="tipText"></span></div>
+      <button class="show-text-btn" id="readMoreBtn" onclick="toggleText()">&#128214; Show room text</button>
+      <div class="room-text-wrap" id="roomTextWrap">
+        <div class="room-text" id="roomText"></div>
+      </div>
+      <div class="bottom-pad"></div>
+    </div>
+
+    <!-- Player section: inline on mobile, fixed bottom bar on desktop -->
+    <div class="player-section">
+      <div class="ps-left">
+        <div class="room-name-lg ps-room-name" id="psRoomName"></div>
+        <div class="room-sub-line ps-sub" id="psSub"></div>
+      </div>
+      <div class="ps-center">
+        <div class="controls-main">
+          <button class="skip-btn" onclick="skip(-15)">
+            <svg width="26" height="22" viewBox="0 0 26 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="12,2 2,11 12,20" fill="#FDFAF5"/>
+              <polygon points="24,2 14,11 24,20" fill="#FDFAF5"/>
+              <rect x="0" y="3" width="3" height="16" rx="1.5" fill="#FDFAF5"/>
+            </svg>
+          </button>
+          <button class="play-btn" id="playBtn" onclick="togglePlay()">&#9654;</button>
+          <button class="skip-btn" onclick="skip(15)">
+            <svg width="26" height="22" viewBox="0 0 26 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="14,2 24,11 14,20" fill="#FDFAF5"/>
+              <polygon points="2,2 12,11 2,20" fill="#FDFAF5"/>
+              <rect x="23" y="3" width="3" height="16" rx="1.5" fill="#FDFAF5"/>
+            </svg>
+          </button>
+        </div>
+        <div class="prog-section">
+          <div class="prog-bg" id="progBg">
+            <div class="prog-fill" id="progFill"><div class="prog-dot"></div></div>
+          </div>
+          <div class="time-row">
+            <span id="elapsed">0:00</span>
+            <span class="p-lang-lbl" id="pLang"></span>
+            <span id="totalTime">0:00</span>
+          </div>
+        </div>
+      </div>
+      <div class="ps-right">
+        <div class="room-nav">
+          <button class="nbtn" id="prevBtn" onclick="goRoom(cur-1)">&#8592; Prev</button>
+          <button class="nbtn" id="nextBtn" onclick="goRoom(cur+1)">Next &#8594;</button>
+        </div>
+        <div class="speak-badge" id="speakBadge">
+          <div class="dot1"></div><div class="dot2"></div><div class="dot3"></div>
+          <span id="speakLbl">Speaking...</span>
+        </div>
       </div>
     </div>
 
-    <div class="controls-main">
-      <button class="skip-btn" onclick="skip(-15)">
-        <svg width="26" height="22" viewBox="0 0 26 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <polygon points="12,2 2,11 12,20" fill="#FDFAF5"/>
-          <polygon points="24,2 14,11 24,20" fill="#FDFAF5"/>
-          <rect x="0" y="3" width="3" height="16" rx="1.5" fill="#FDFAF5"/>
-        </svg>
-      </button>
-      <button class="play-btn" id="playBtn" onclick="togglePlay()">&#9654;</button>
-      <button class="skip-btn" onclick="skip(15)">
-        <svg width="26" height="22" viewBox="0 0 26 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <polygon points="14,2 24,11 14,20" fill="#FDFAF5"/>
-          <polygon points="2,2 12,11 2,20" fill="#FDFAF5"/>
-          <rect x="23" y="3" width="3" height="16" rx="1.5" fill="#FDFAF5"/>
-        </svg>
-      </button>
-    </div>
-
-    <div class="speak-badge" id="speakBadge">
-      <div class="dot1"></div><div class="dot2"></div><div class="dot3"></div>
-      <span id="speakLbl">Speaking...</span>
-    </div>
-
-    <div class="room-nav">
-      <button class="nbtn" id="prevBtn" onclick="goRoom(cur-1)">&#8592; Prev room</button>
-      <button class="nbtn" id="nextBtn" onclick="goRoom(cur+1)">Next room &#8594;</button>
-    </div>
-
-    <div class="room-grid" id="roomGrid"></div>
-
-    <div class="tip"><span style="font-size:15px;flex-shrink:0">&#128161;</span><span id="tipText"></span></div>
-
-    <button class="show-text-btn" id="readMoreBtn" onclick="toggleText()">&#128214; Show room text</button>
-    <div class="room-text-wrap" id="roomTextWrap">
-      <div class="room-text" id="roomText"></div>
-    </div>
-
-    <div class="bottom-pad"></div>
-    </div>
   </div>
 </div>
 
@@ -814,6 +841,10 @@ function render(){
   setupHighlightTokens();
   document.getElementById("roomBadge").textContent = "Room "+r.id;
   document.getElementById("roomTitleName").textContent = name;
+  const psRoomName = document.getElementById("psRoomName");
+  if(psRoomName) psRoomName.textContent = name;
+  const psSub = document.getElementById("psSub");
+  if(psSub) psSub.textContent = r.subs[lang]||r.subs.en;
   document.getElementById("roomSub").textContent = r.subs[lang]||r.subs.en;
   document.getElementById("tipText").textContent = r.tips[lang]||r.tips.en;
   applyTextOpenState();
