@@ -17,47 +17,69 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* APP CONTAINER — zentriert, phone-Breite */
 .app{width:100%;max-width:430px;height:100%;background:#F5EDD9;display:flex;flex-direction:column;overflow:hidden}
 
-/* MOBILE: player-section inline in scroll flow */
-.browse-col{display:contents}
-.player-section{padding:0}
-.ps-left,.ps-right{display:none}
-.ps-room-name,.ps-sub{display:none}
+/* ── MOBILE LAYOUT (default) ────────────────────────────── */
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:env(safe-area-inset-bottom,16px)}
 
-/* DESKTOP MODE — Spotify-style fixed bottom player bar */
-.app.desktop{max-width:860px;height:100%}
-.app.desktop .content{display:flex;flex-direction:column;height:100%;overflow:hidden}
-.app.desktop .cover-art{max-height:38vh;aspect-ratio:unset;width:100%;flex-shrink:0}
+/* Player section — inline, vertical stack */
+.player-section{padding:0 22px}
+.room-info{padding:18px 0 0}
+.ps-center{display:flex;flex-direction:column;align-items:center}
+.controls-main{display:flex;align-items:center;justify-content:center;gap:32px;padding:22px 0 0}
+.prog-section{width:100%;padding:10px 0 0}
+.ps-right{padding:10px 0 0}
+.room-nav{display:flex;gap:10px}
+.speak-badge{display:none;align-items:center;gap:6px;font-size:11px;color:#8B6F47;padding:8px 0 0;justify-content:center}
+.speak-badge.on{display:flex}
+
+/* Browse section — room grid, tip, text — scrolls below controls */
+.browse-col{padding:0}
+.room-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:18px 22px 0}
+.tip{background:#EDE0C4;border-radius:8px;padding:11px 13px;font-size:12px;color:#6B3A1F;display:flex;gap:9px;margin:16px 22px 0;border-left:3px solid #A0522D;align-items:flex-start;font-style:italic}
+.show-text-btn{display:block;width:calc(100% - 44px);margin:14px 22px 0;padding:13px;border-radius:8px;border:none;background:#A0522D;color:#FDFAF5;font-size:13px;font-weight:700;letter-spacing:.3px;text-align:center;cursor:pointer;transition:background .15s;font-family:-apple-system,sans-serif}
+.show-text-btn:active{background:#6B3A1F}
+.room-text-wrap{margin:0 22px;max-height:0;overflow:hidden;transition:max-height .35s ease}
+.room-text-wrap.open{max-height:6000px;margin-top:14px}
+.bottom-pad{height:24px}
+
+/* ── DESKTOP LAYOUT ─────────────────────────────────────── */
+.app.desktop{max-width:860px}
+.app.desktop .content{overflow-y:auto;padding-bottom:120px}
+
+/* Cover art: wider, less tall */
+.app.desktop .cover-art{max-height:36vh}
 .app.desktop .cover-room-name{font-size:36px}
-.app.desktop .browse-col{display:flex;flex-direction:column;flex:1;overflow-y:auto;padding-bottom:110px}
-.app.desktop .room-info{padding:18px 32px 0}
-.app.desktop .room-name-lg{font-size:24px}
-.app.desktop .room-grid{grid-template-columns:repeat(5,1fr);padding:14px 32px 0}
-.app.desktop .tip{margin:16px 32px 0}
-.app.desktop .show-text-btn{width:calc(100% - 64px);margin:14px 32px 0}
-.app.desktop .room-text-wrap{margin:0 32px}
-.app.desktop .bottom-pad{height:20px}
 
-/* DESKTOP: fixed bottom player bar */
+/* Player section becomes fixed bottom bar */
 .app.desktop .player-section{
   position:fixed;bottom:0;left:50%;transform:translateX(-50%);
-  width:860px;max-width:100%;
+  width:860px;max-width:100vw;
   background:#EDE0C4;border-top:2px solid #C4A882;
-  display:flex;align-items:center;gap:0;
-  padding:10px 24px 14px;z-index:200;
-  box-sizing:border-box;
+  display:grid;
+  grid-template-columns:1fr 2fr 1fr;
+  grid-template-areas:"info center nav";
+  align-items:center;
+  padding:10px 28px 14px;
+  gap:16px;z-index:200;box-sizing:border-box;
 }
-.app.desktop .ps-left{display:flex;flex-direction:column;justify-content:center;flex:1;min-width:0;padding-right:16px}
-.app.desktop .ps-room-name{display:block;font-size:14px;font-weight:700;color:#2C1810;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
-.app.desktop .ps-sub{display:block;font-size:11px;color:#8B6F47;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.app.desktop .ps-center{display:flex;flex-direction:column;align-items:center;gap:6px;flex:2}
+.app.desktop .room-info{grid-area:info;padding:0;min-width:0}
+.app.desktop .room-name-lg{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app.desktop .room-sub-line{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app.desktop .ps-center{grid-area:center;gap:6px}
 .app.desktop .controls-main{padding:0;gap:20px}
 .app.desktop .play-btn{width:52px;height:52px;font-size:22px}
 .app.desktop .skip-btn{width:44px;height:44px}
 .app.desktop .prog-section{padding:0;width:100%}
-.app.desktop .ps-right{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;flex:1;gap:6px;padding-left:16px}
-.app.desktop .room-nav{padding:0;gap:6px;flex-direction:column;width:100%}
-.app.desktop .nbtn{min-height:34px;font-size:11px;padding:0 10px}
+.app.desktop .ps-right{grid-area:nav;padding:0;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.app.desktop .room-nav{flex-direction:column;gap:5px;width:100%}
+.app.desktop .nbtn{min-height:32px;font-size:11px;padding:0 10px}
 .app.desktop .speak-badge{padding:0;justify-content:flex-end}
+
+/* Browse section: wider padding on desktop */
+.app.desktop .room-grid{grid-template-columns:repeat(5,1fr);padding:18px 32px 0}
+.app.desktop .tip{margin:16px 32px 0}
+.app.desktop .show-text-btn{width:calc(100% - 64px);margin:14px 32px 0}
+.app.desktop .room-text-wrap{margin:0 32px}
+.app.desktop .bottom-pad{height:20px}
 
 /* TOP BAR */
 .top-bar{flex-shrink:0;background:#EDE0C4;padding:env(safe-area-inset-top,0px) 0 0;border-bottom:1px solid #D4B896}
@@ -211,27 +233,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="cover-room-name" id="roomTitleName"></div>
     </div>
 
-    <!-- Scrollable browse area (room grid, tip, text) -->
-    <div class="browse-col">
-      <div class="room-info">
+    <!-- PLAYER SECTION: inline on mobile, fixed bottom bar on desktop -->
+    <div class="player-section">
+      <!-- Room name + subtitle (mobile: shown here; desktop: left column of bottom bar) -->
+      <div class="room-info" id="roomInfo">
         <div class="room-name-lg" id="pName"></div>
         <div class="room-sub-line" id="roomSub"></div>
       </div>
-      <div class="room-grid" id="roomGrid"></div>
-      <div class="tip"><span style="font-size:15px;flex-shrink:0">&#128161;</span><span id="tipText"></span></div>
-      <button class="show-text-btn" id="readMoreBtn" onclick="toggleText()">&#128214; Show room text</button>
-      <div class="room-text-wrap" id="roomTextWrap">
-        <div class="room-text" id="roomText"></div>
-      </div>
-      <div class="bottom-pad"></div>
-    </div>
-
-    <!-- Player section: inline on mobile, fixed bottom bar on desktop -->
-    <div class="player-section">
-      <div class="ps-left">
-        <div class="room-name-lg ps-room-name" id="psRoomName"></div>
-        <div class="room-sub-line ps-sub" id="psSub"></div>
-      </div>
+      <!-- Controls (center on both mobile and desktop) -->
       <div class="ps-center">
         <div class="controls-main">
           <button class="skip-btn" onclick="skip(-15)">
@@ -261,6 +270,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           </div>
         </div>
       </div>
+      <!-- Prev/Next + speaking badge (mobile: below controls; desktop: right column) -->
       <div class="ps-right">
         <div class="room-nav">
           <button class="nbtn" id="prevBtn" onclick="goRoom(cur-1)">&#8592; Prev</button>
@@ -271,6 +281,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           <span id="speakLbl">Speaking...</span>
         </div>
       </div>
+    </div>
+
+    <!-- BROWSE SECTION: room grid, tip, text (scrolls below player) -->
+    <div class="browse-col">
+      <div class="room-grid" id="roomGrid"></div>
+      <div class="tip"><span style="font-size:15px;flex-shrink:0">&#128161;</span><span id="tipText"></span></div>
+      <button class="show-text-btn" id="readMoreBtn" onclick="toggleText()">&#128214; Show room text</button>
+      <div class="room-text-wrap" id="roomTextWrap">
+        <div class="room-text" id="roomText"></div>
+      </div>
+      <div class="bottom-pad"></div>
     </div>
 
   </div>
@@ -841,10 +862,6 @@ function render(){
   setupHighlightTokens();
   document.getElementById("roomBadge").textContent = "Room "+r.id;
   document.getElementById("roomTitleName").textContent = name;
-  const psRoomName = document.getElementById("psRoomName");
-  if(psRoomName) psRoomName.textContent = name;
-  const psSub = document.getElementById("psSub");
-  if(psSub) psSub.textContent = r.subs[lang]||r.subs.en;
   document.getElementById("roomSub").textContent = r.subs[lang]||r.subs.en;
   document.getElementById("tipText").textContent = r.tips[lang]||r.tips.en;
   applyTextOpenState();
