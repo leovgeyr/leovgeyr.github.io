@@ -17,9 +17,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* APP CONTAINER — zentriert, phone-Breite */
 .app{width:100%;max-width:430px;height:100%;background:#F5EDD9;display:flex;flex-direction:column;overflow:hidden}
 
+/* DESKTOP MODE */
+.app.desktop{max-width:100%;flex-direction:column}
+.app.desktop .content{display:grid;grid-template-columns:420px 1fr;grid-template-rows:1fr;align-items:start;height:100%;overflow:hidden}
+.app.desktop .cover-art{position:sticky;top:0;height:100vh;max-height:100%;aspect-ratio:unset;grid-row:1;grid-column:1}
+.app.desktop .cover-room-name{font-size:38px}
+.app.desktop .right-col{grid-column:2;grid-row:1;overflow-y:auto;height:100vh;padding-bottom:32px}
+.app.desktop .room-info{padding:22px 28px 0}
+.app.desktop .room-name-lg{font-size:26px}
+.app.desktop .prog-section{padding:20px 28px 0}
+.app.desktop .controls-main{padding:24px 28px 0;gap:36px}
+.app.desktop .play-btn{width:76px;height:76px;font-size:32px}
+.app.desktop .skip-btn{width:60px;height:60px}
+.app.desktop .room-nav{padding:18px 28px 0}
+.app.desktop .nbtn{font-size:14px}
+.app.desktop .room-grid{grid-template-columns:repeat(5,1fr);padding:16px 28px 0}
+.app.desktop .tip{margin:18px 28px 0}
+.app.desktop .show-text-btn{width:calc(100% - 56px);margin:16px 28px 0}
+.app.desktop .room-text-wrap{margin:0 28px}
+.app.desktop .speak-badge{padding:10px 28px 0}
+.app.desktop .bottom-pad{height:32px}
+
 /* TOP BAR */
 .top-bar{flex-shrink:0;background:#EDE0C4;padding:env(safe-area-inset-top,0px) 0 0;border-bottom:1px solid #D4B896}
-.castle-title{text-align:center;padding:12px 16px 8px;font-size:11px;font-weight:700;color:#6B3A1F;letter-spacing:2.5px;text-transform:uppercase;font-family:Georgia,serif}
+.castle-title-row{display:flex;align-items:center;justify-content:center;padding:12px 16px 8px;position:relative}
+.castle-title{font-size:11px;font-weight:700;color:#6B3A1F;letter-spacing:2.5px;text-transform:uppercase;font-family:Georgia,serif}
+.view-toggle-btn{position:absolute;right:14px;background:#A0522D;border:none;color:#FDFAF5;font-size:16px;width:34px;height:34px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.view-toggle-btn:active{background:#6B3A1F}
 .lang-row{display:flex;gap:6px;padding:0 14px 12px;flex-wrap:wrap;justify-content:center}
 .lb{padding:7px 14px;border-radius:20px;border:none;background:#A0522D;color:#FDFAF5;font-size:12px;font-weight:700;cursor:pointer;transition:background .15s;min-height:36px;letter-spacing:.5px}
 .lb.on{background:#6B3A1F}
@@ -151,7 +175,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <div class="app">
   <div class="top-bar">
-    <div class="castle-title">&#127984; Schloss Mespelbrunn</div>
+    <div class="castle-title-row">
+      <div class="castle-title">&#127984; Schloss Mespelbrunn</div>
+      <button class="view-toggle-btn" id="viewToggleBtn" onclick="toggleView()" title="Switch view">&#128241;</button>
+    </div>
     <div class="lang-row" id="langs"></div>
   </div>
 
@@ -163,6 +190,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="cover-room-name" id="roomTitleName"></div>
     </div>
 
+    <div class="right-col">
     <div class="room-info">
       <div class="room-name-lg" id="pName"></div>
       <div class="room-sub-line" id="roomSub"></div>
@@ -217,6 +245,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
 
     <div class="bottom-pad"></div>
+    </div>
   </div>
 </div>
 
@@ -859,6 +888,25 @@ document.getElementById("mainBody").addEventListener("touchend",e=>{
 
 if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}
 setupAudioElement();
+
+// VIEW TOGGLE: Mobile ↔ Desktop
+function toggleView(){
+  const app = document.querySelector(".app");
+  const btn = document.getElementById("viewToggleBtn");
+  const isDesktop = app.classList.toggle("desktop");
+  btn.innerHTML = isDesktop ? "&#128241;" : "&#128444;";
+  try{ sessionStorage.setItem("viewMode", isDesktop ? "desktop" : "mobile"); }catch(e){}
+}
+// Restore view mode on load
+(function(){
+  try{
+    if(sessionStorage.getItem("viewMode") === "desktop"){
+      document.querySelector(".app").classList.add("desktop");
+      const btn = document.getElementById("viewToggleBtn");
+      if(btn) btn.innerHTML = "&#128241;";
+    }
+  }catch(e){}
+})();
 
 const PIN = "1412";
 let pinEntry = "";
