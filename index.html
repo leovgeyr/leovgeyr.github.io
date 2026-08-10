@@ -79,6 +79,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* COVER ART — wie Albumcover */
 .cover-art{width:100%;aspect-ratio:1;max-height:42vh;background:linear-gradient(150deg,#D4B896 0%,#C4A882 55%,#A8825C 100%);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
 .cover-room-name{font-family:Georgia,serif;font-size:30px;font-weight:700;color:#2C1810;text-align:center;padding:24px;line-height:1.3;opacity:.55}
+.cover-photo{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:none}
+.cover-art.has-photo .cover-room-name{display:none}
 .room-badge{position:absolute;top:14px;left:14px;background:rgba(44,24,16,.75);color:#F5EDD9;font-size:11px;font-weight:700;padding:5px 13px;border-radius:20px;letter-spacing:1px}
 
 /* ROOM INFO */
@@ -196,7 +198,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="content" id="mainBody">
     <audio id="player" preload="auto"></audio>
 
-    <div class="cover-art">
+    <div class="cover-art" id="coverArt">
+      <img class="cover-photo" id="coverPhoto" alt="">
       <div class="room-badge" id="roomBadge">Room 1</div>
       <div class="cover-room-name" id="roomTitleName"></div>
     </div>
@@ -647,6 +650,12 @@ function audioFileFor(r, l){
   return "audio/"+(fileKey[r.key]||r.key)+"_"+l+".m4a";
 }
 
+// Räume mit vorhandenem Coverfoto (die übrigen behalten den Gradient-Platzhalter).
+const roomPhotos = new Set(["einführung","rittersaal","hof","kapelle","speisesaal","forsthaus"]);
+function photoFileFor(r){
+  return "images/"+(fileKey[r.key]||r.key)+".jpg";
+}
+
 let cur=0, lang="en", playing=false, prog=0, textOpen=false;
 let touchStartX=0, touchStartY=0;
 
@@ -745,6 +754,17 @@ function render(){
   audio.pause();
   audio.src = audioFileFor(r, lang);
   renderRoomText();
+  const coverArt = document.getElementById("coverArt");
+  const coverPhoto = document.getElementById("coverPhoto");
+  if (roomPhotos.has(r.key)) {
+    coverPhoto.src = photoFileFor(r);
+    coverPhoto.alt = name;
+    coverPhoto.style.display = "block";
+    coverArt.classList.add("has-photo");
+  } else {
+    coverPhoto.style.display = "none";
+    coverArt.classList.remove("has-photo");
+  }
   document.getElementById("roomBadge").textContent = "Room "+r.id;
   document.getElementById("roomTitleName").textContent = name;
   document.getElementById("roomSub").textContent = r.subs[lang]||r.subs.en;
