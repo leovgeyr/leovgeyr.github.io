@@ -139,51 +139,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* BOTTOM SPACE */
 .bottom-pad{height:24px}
 
-/* PIN SCREEN */
-#pinScreen{position:fixed;top:0;left:0;width:100%;height:100%;background:#F5EDD9;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px}
-.pin-crest{margin-bottom:22px;display:block}
-.pin-title{font-size:12px;font-weight:700;color:#6B3A1F;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;font-family:Georgia,serif}
-.pin-sub{font-size:13px;color:#8B6F47;margin-bottom:40px;text-align:center}
-.pin-dots{display:flex;gap:14px;margin-bottom:32px}
-.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid #C4A882;background:transparent;transition:all .2s}
-.pin-dot.filled{background:#A0522D;border-color:#A0522D}
-.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;width:264px}
-.pin-btn{height:70px;border-radius:10px;border:none;background:#A0522D;color:#FDFAF5;font-size:24px;font-weight:400;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif}
-.pin-btn:active{background:#6B3A1F;transform:scale(0.95)}
-.pin-btn.del{font-size:18px;background:#C4A882;color:#2C1810}
-.pin-btn.del:active{background:#A0522D;color:#FDFAF5}
-.pin-btn.empty{background:transparent;cursor:default}
-.pin-btn.empty:active{background:transparent;transform:none}
-.pin-error{color:#8B1A00;font-size:13px;margin-top:16px;opacity:0;transition:opacity .3s}
-.pin-error.on{opacity:1}
+/* WELCOME SCREEN */
+#welcomeScreen{position:fixed;top:0;left:0;width:100%;height:100%;background:#F5EDD9;z-index:9999;display:flex;flex-direction:column;align-items:center;padding:32px;padding-top:16vh;transition:opacity .5s ease}
+#welcomeScreen.hide{opacity:0;pointer-events:none}
+.welcome-crest{margin-bottom:26px;display:block}
+.welcome-title{font-size:14px;font-weight:700;color:#6B3A1F;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;font-family:Georgia,serif}
+.welcome-sub{font-size:15px;color:#8B6F47;text-align:center;font-family:Georgia,serif}
 </style>
 </head>
 <body>
 
-<div id="pinScreen">
-  <img class="pin-crest" src="wappen.png" width="100" height="117" alt="Wappen derer von Ingelheim genannt Echter von und zu Mespelbrunn">
-
-  <div class="pin-title">Schloss Mespelbrunn</div>
-  <div class="pin-sub">Audio Guide &mdash; Enter access code</div>
-  <div class="pin-dots">
-    <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
-    <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
-  </div>
-  <div class="pin-pad">
-    <button class="pin-btn" onclick="pinKey('1')">1</button>
-    <button class="pin-btn" onclick="pinKey('2')">2</button>
-    <button class="pin-btn" onclick="pinKey('3')">3</button>
-    <button class="pin-btn" onclick="pinKey('4')">4</button>
-    <button class="pin-btn" onclick="pinKey('5')">5</button>
-    <button class="pin-btn" onclick="pinKey('6')">6</button>
-    <button class="pin-btn" onclick="pinKey('7')">7</button>
-    <button class="pin-btn" onclick="pinKey('8')">8</button>
-    <button class="pin-btn" onclick="pinKey('9')">9</button>
-    <button class="pin-btn empty"></button>
-    <button class="pin-btn" onclick="pinKey('0')">0</button>
-    <button class="pin-btn del" onclick="pinDel()">&#9003;</button>
-  </div>
-  <div class="pin-error" id="pinError">Incorrect code &mdash; please try again</div>
+<div id="welcomeScreen">
+  <img class="welcome-crest" src="wappen.png" width="110" height="129" alt="Wappen derer von Ingelheim genannt Echter von und zu Mespelbrunn">
+  <div class="welcome-title">Schloss Mespelbrunn</div>
+  <div class="welcome-sub">Audioguide</div>
 </div>
 
 <div class="app">
@@ -886,52 +855,20 @@ function toggleView(){
   }catch(e){}
 })();
 
-const PIN = "1412";
-let pinEntry = "";
-function pinKey(k){
-  if(pinEntry.length>=4) return;
-  pinEntry += k;
-  document.getElementById("d"+(pinEntry.length-1)).classList.add("filled");
-  if(pinEntry.length===4){
-    setTimeout(()=>{
-      if(pinEntry===PIN){
-        document.getElementById("pinScreen").style.display="none";
-        sessionStorage.setItem("auth","1");
-        localStorage.setItem("sessionExpiry", String(Date.now() + 120*60*1000));
-      } else {
-        document.getElementById("pinError").classList.add("on");
-        setTimeout(()=>{
-          pinEntry="";
-          for(let i=0;i<4;i++) document.getElementById("d"+i).classList.remove("filled");
-          document.getElementById("pinError").classList.remove("on");
-        },1000);
-      }
-    },200);
-  }
-}
-function pinDel(){
-  if(pinEntry.length===0) return;
-  document.getElementById("d"+(pinEntry.length-1)).classList.remove("filled");
-  pinEntry=pinEntry.slice(0,-1);
-}
-(function(){
-  const expiry = localStorage.getItem("sessionExpiry");
-  if(sessionStorage.getItem("auth")==="1" && expiry && Date.now() < Number(expiry)){
-    document.getElementById("pinScreen").style.display="none";
-  } else if(sessionStorage.getItem("auth")==="1"){
-    sessionStorage.removeItem("auth");
-    localStorage.removeItem("sessionExpiry");
-  }
-})();
+// Willkommens-Screen: 3 Sekunden zeigen, dann sanft ausblenden (keine Code-Eingabe mehr nötig).
+// Beim Laden startet sofort eine neue 2h-Session (kein Zugriffs-Gate mehr -- der Timer
+// dient nur noch dazu, eine vergessene/liegengelassene Wiedergabe nach 2h zu stoppen).
+sessionStorage.setItem("auth","1");
+localStorage.setItem("sessionExpiry", String(Date.now() + 120*60*1000));
+setTimeout(()=>{
+  document.getElementById("welcomeScreen").classList.add("hide");
+}, 3000);
+
 function checkSessionExpiry(){
   const expiry = localStorage.getItem("sessionExpiry");
-  if(sessionStorage.getItem("auth")==="1" && expiry && Date.now() >= Number(expiry)){
+  if(expiry && Date.now() >= Number(expiry)){
     stopAll();
-    sessionStorage.removeItem("auth");
-    localStorage.removeItem("sessionExpiry");
-    document.getElementById("pinScreen").style.display="";
-    pinEntry="";
-    for(let i=0;i<4;i++) document.getElementById("d"+i).classList.remove("filled");
+    localStorage.setItem("sessionExpiry", String(Date.now() + 120*60*1000));
   }
 }
 setInterval(checkSessionExpiry, 30000);
