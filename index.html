@@ -839,6 +839,32 @@ document.getElementById("mainBody").addEventListener("touchend",e=>{
 },{passive:true});
 
 if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}
+
+// Läuft unsichtbar im Hintergrund: lädt alle Audio- und Bild-Dateien vor,
+// damit die App im Schloss (dicke Mauern, oft kein Empfang) komplett offline funktioniert.
+// CACHE_NAME muss exakt mit der CACHE-Konstante in sw.js übereinstimmen!
+const CACHE_NAME = "mespelbrunn-v3"; // muss mit sw.js CACHE übereinstimmen
+function prefetchAllOffline(){
+  if(!("caches" in window)) return;
+  const langs = ["en","fr","es","it","ja","zh"];
+  const urls = [];
+  rooms.forEach(r=>{
+    langs.forEach(l=>{ urls.push(audioFileFor(r,l)); });
+    urls.push(photoFileFor(r));
+  });
+  caches.open(CACHE_NAME).then(cache=>{
+    return Promise.all(urls.map(url=>
+      fetch(url).then(response=>{
+        if(response.ok){ return cache.put(url, response.clone()); }
+        console.debug("prefetchAllOffline: nicht verfügbar, übersprungen:", url);
+      }).catch(()=>{
+        console.debug("prefetchAllOffline: Fehler beim Laden, übersprungen:", url);
+      })
+    ));
+  });
+}
+prefetchAllOffline();
+
 setupAudioElement();
 
 // VIEW TOGGLE: Mobile ↔ Desktop
@@ -871,6 +897,7 @@ function pinKey(k){
       if(pinEntry===PIN){
         document.getElementById("pinScreen").style.display="none";
         sessionStorage.setItem("auth","1");
+        localStorage.setItem("sessionExpiry", String(Date.now() + 120*60*1000));
       } else {
         document.getElementById("pinError").classList.add("on");
         setTimeout(()=>{
@@ -887,9 +914,27 @@ function pinDel(){
   document.getElementById("d"+(pinEntry.length-1)).classList.remove("filled");
   pinEntry=pinEntry.slice(0,-1);
 }
-if(sessionStorage.getItem("auth")==="1"){
-  document.getElementById("pinScreen").style.display="none";
+(function(){
+  const expiry = localStorage.getItem("sessionExpiry");
+  if(sessionStorage.getItem("auth")==="1" && expiry && Date.now() < Number(expiry)){
+    document.getElementById("pinScreen").style.display="none";
+  } else if(sessionStorage.getItem("auth")==="1"){
+    sessionStorage.removeItem("auth");
+    localStorage.removeItem("sessionExpiry");
+  }
+})();
+function checkSessionExpiry(){
+  const expiry = localStorage.getItem("sessionExpiry");
+  if(sessionStorage.getItem("auth")==="1" && expiry && Date.now() >= Number(expiry)){
+    stopAll();
+    sessionStorage.removeItem("auth");
+    localStorage.removeItem("sessionExpiry");
+    document.getElementById("pinScreen").style.display="";
+    pinEntry="";
+    for(let i=0;i<4;i++) document.getElementById("d"+i).classList.remove("filled");
+  }
 }
+setInterval(checkSessionExpiry, 30000);
 
 const langEl = document.getElementById("langs");
 langList.forEach(({c,l})=>{
