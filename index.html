@@ -67,8 +67,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .top-bar{flex-shrink:0;background:#EDE0C4;padding:env(safe-area-inset-top,0px) 0 0;border-bottom:1px solid #D4B896}
 .castle-title-row{display:flex;align-items:center;justify-content:center;padding:12px 16px 8px;position:relative}
 .castle-title{font-size:11px;font-weight:700;color:#6B3A1F;letter-spacing:2.5px;text-transform:uppercase;font-family:Georgia,serif}
-.view-toggle-btn{position:absolute;right:14px;background:#A0522D;border:none;color:#FDFAF5;font-size:16px;width:34px;height:34px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
-.view-toggle-btn:active{background:#6B3A1F}
 .lang-row{display:flex;gap:6px;padding:0 14px 12px;flex-wrap:wrap;justify-content:center}
 .lb{padding:7px 14px;border-radius:20px;border:none;background:#A0522D;color:#FDFAF5;font-size:12px;font-weight:700;cursor:pointer;transition:background .15s;min-height:36px;letter-spacing:.5px}
 .lb.on{background:#6B3A1F}
@@ -160,7 +158,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="top-bar">
     <div class="castle-title-row">
       <div class="castle-title">&#127984; Schloss Mespelbrunn</div>
-      <button class="view-toggle-btn" id="viewToggleBtn" onclick="toggleView()" title="Switch view">&#128241;</button>
     </div>
     <div class="lang-row" id="langs"></div>
   </div>
@@ -838,25 +835,6 @@ function prefetchAllOffline(){
 setTimeout(prefetchAllOffline, 3500);
 
 setupAudioElement();
-
-// VIEW TOGGLE: Mobile ↔ Desktop
-function toggleView(){
-  const app = document.querySelector(".app");
-  const btn = document.getElementById("viewToggleBtn");
-  const isDesktop = app.classList.toggle("desktop");
-  btn.innerHTML = isDesktop ? "&#128241;" : "&#128444;";
-  try{ sessionStorage.setItem("viewMode", isDesktop ? "desktop" : "mobile"); }catch(e){}
-}
-// Restore view mode on load
-(function(){
-  try{
-    if(sessionStorage.getItem("viewMode") === "desktop"){
-      document.querySelector(".app").classList.add("desktop");
-      const btn = document.getElementById("viewToggleBtn");
-      if(btn) btn.innerHTML = "&#128241;";
-    }
-  }catch(e){}
-})();
 
 // Willkommens-Screen: 3 Sekunden zeigen, dann sanft ausblenden (keine Code-Eingabe mehr nötig).
 // Beim Laden startet sofort eine neue 2h-Session (kein Zugriffs-Gate mehr -- der Timer
