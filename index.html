@@ -141,6 +141,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* WELCOME SCREEN */
 #welcomeScreen{position:fixed;top:0;left:0;width:100%;height:100%;background:#F5EDD9;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;transition:opacity .5s ease}
 #welcomeScreen.hide{opacity:0;pointer-events:none}
+#blockedScreen{position:fixed;top:0;left:0;width:100%;height:100%;background:#F5EDD9;z-index:10000;display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center}
+#blockedScreen.show{display:flex}
+.blocked-crest{margin-bottom:34px;display:block;width:32vw;max-width:150px;min-width:100px;height:auto;opacity:.85}
+.blocked-title{font-size:20px;font-weight:700;color:#6B3A1F;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;font-family:Georgia,serif}
+.blocked-sub{font-size:16px;color:#8B6F47;font-family:Georgia,serif;line-height:1.5;max-width:320px;white-space:pre-line}
 .welcome-crest{margin-bottom:34px;display:block;width:38vw;max-width:190px;min-width:130px;height:auto}
 .welcome-title{font-size:22px;font-weight:700;color:#6B3A1F;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;font-family:Georgia,serif;text-align:center}
 .welcome-sub{font-size:19px;color:#8B6F47;text-align:center;font-family:Georgia,serif}
@@ -152,6 +157,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <img class="welcome-crest" src="wappen.png" width="190" height="223" alt="Wappen derer von Ingelheim genannt Echter von und zu Mespelbrunn">
   <div class="welcome-title">Schloss Mespelbrunn</div>
   <div class="welcome-sub">Audioguide</div>
+</div>
+
+<div id="blockedScreen">
+  <img class="blocked-crest" src="wappen.png" width="150" height="176" alt="Wappen derer von Ingelheim genannt Echter von und zu Mespelbrunn">
+  <div class="blocked-title" id="blockedTitle">Audioguide Timeout</div>
+  <div class="blocked-sub" id="blockedSub">Thank you for your visit.</div>
 </div>
 
 <div class="app">
@@ -807,8 +818,8 @@ document.getElementById("mainBody").addEventListener("touchend",e=>{
 
 if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}
 
-// Läuft unsichtbar im Hintergrund: lädt alle Audio- und Bild-Dateien vor,
-// damit die App im Schloss (dicke Mauern, oft kein Empfang) komplett offline funktioniert.
+// Lädt alle Audio- und Bild-Dateien vor, damit die App im Schloss (dicke Mauern,
+// oft kein Empfang) komplett offline funktioniert. Läuft nur, wenn Zugriff gewährt wurde.
 // CACHE_NAME muss exakt mit der CACHE-Konstante in sw.js übereinstimmen!
 const CACHE_NAME = "mespelbrunn-v3"; // muss mit sw.js CACHE übereinstimmen
 function prefetchAllOffline(){
@@ -830,39 +841,75 @@ function prefetchAllOffline(){
     ));
   });
 }
-// Erst nach dem Welcome-Screen starten (setTimeout), damit die vielen parallelen
-// Downloads nicht dem Wappenbild/den kritischen ersten Sekunden die Bandbreite wegnehmen.
-setTimeout(prefetchAllOffline, 3500);
 
-setupAudioElement();
+// --- QR-gestützte 2h-Zugriffssperre ---
+// Der gedruckte QR-Code verlinkt auf .../?e=ENTRY_TOKEN. Nur dieser Parameter startet
+// eine neue 2h-Nutzungsfrist ab dem Moment des Scans. Jedes andere Öffnen der Seite
+// (Lesezeichen, Verlauf, einfaches Neuladen, Handy aus/an) prüft nur gegen die bereits
+// laufende Frist -- die App verlängert sie nie von selbst. Nach Ablauf: Sperrbildschirm,
+// einzig ein erneuter Scan mit demselben Link setzt die Frist neu. Das ist kein
+// Passwortschutz (wer den kompletten Link inkl. Parameter kennt, kommt trotzdem rein),
+// sondern ein praktischer Riegel gegen normales Weiterreichen/Wiederverwenden des Links.
+const ENTRY_PARAM = "e";
+const ENTRY_TOKEN = "k7m2p9"; // muss mit dem im gedruckten QR-Code kodierten Link übereinstimmen
 
-// Willkommens-Screen: 3 Sekunden zeigen, dann sanft ausblenden (keine Code-Eingabe mehr nötig).
-// Beim Laden startet sofort eine neue 2h-Session (kein Zugriffs-Gate mehr -- der Timer
-// dient nur noch dazu, eine vergessene/liegengelassene Wiedergabe nach 2h zu stoppen).
-sessionStorage.setItem("auth","1");
-localStorage.setItem("sessionExpiry", String(Date.now() + 120*60*1000));
-setTimeout(()=>{
-  document.getElementById("welcomeScreen").classList.add("hide");
-}, 3000);
+function showBlocked(title, sub){
+  document.getElementById("blockedTitle").textContent = title;
+  document.getElementById("blockedSub").textContent = sub;
+  document.getElementById("blockedScreen").classList.add("show");
+  document.getElementById("welcomeScreen").style.display = "none";
+}
 
 function checkSessionExpiry(){
   const expiry = localStorage.getItem("sessionExpiry");
   if(expiry && Date.now() >= Number(expiry)){
     stopAll();
-    localStorage.setItem("sessionExpiry", String(Date.now() + 120*60*1000));
+    showBlocked("Audioguide Timeout", "Thank you for your visit.");
   }
 }
-setInterval(checkSessionExpiry, 30000);
 
-const langEl = document.getElementById("langs");
-langList.forEach(({c,l})=>{
-  const b = document.createElement("button");
-  b.className = "lb"+(c==="en"?" on":"");
-  b.innerHTML = l;
-  b.onclick = function(){setLang(c,this);};
-  langEl.appendChild(b);
-});
-render();
+function grantAccessAndBoot(){
+  setTimeout(()=>{
+    document.getElementById("welcomeScreen").classList.add("hide");
+  }, 3000);
+  // Erst nach dem Welcome-Screen starten, damit die vielen parallelen Downloads nicht
+  // dem Wappenbild/den kritischen ersten Sekunden die Bandbreite wegnehmen.
+  setTimeout(prefetchAllOffline, 3500);
+  setupAudioElement();
+  const langEl = document.getElementById("langs");
+  langList.forEach(({c,l})=>{
+    const b = document.createElement("button");
+    b.className = "lb"+(c==="en"?" on":"");
+    b.innerHTML = l;
+    b.onclick = function(){setLang(c,this);};
+    langEl.appendChild(b);
+  });
+  render();
+  setInterval(checkSessionExpiry, 30000);
+}
+
+(function initAccess(){
+  const params = new URLSearchParams(window.location.search);
+  const freshScan = params.get(ENTRY_PARAM) === ENTRY_TOKEN;
+
+  if(freshScan){
+    localStorage.setItem("sessionExpiry", String(Date.now() + 120*60*1000));
+    history.replaceState(null, "", window.location.pathname);
+    grantAccessAndBoot();
+    return;
+  }
+
+  const expiry = localStorage.getItem("sessionExpiry");
+  if(!expiry){
+    showBlocked("Welcome", "Please scan the QR code at the entrance to start the audio guide.");
+    return;
+  }
+  if(Date.now() >= Number(expiry)){
+    showBlocked("Audioguide Timeout", "Thank you for your visit.");
+    return;
+  }
+  grantAccessAndBoot();
+})();
 </script>
 </body>
 </html>
