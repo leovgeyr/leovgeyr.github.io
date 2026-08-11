@@ -65,10 +65,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 /* TOP BAR */
 .top-bar{flex-shrink:0;background:#EDE0C4;padding:env(safe-area-inset-top,0px) 0 0;border-bottom:1px solid #D4B896}
-.castle-title-row{display:flex;align-items:center;justify-content:center;padding:12px 16px 8px;position:relative}
-.castle-title{font-size:11px;font-weight:700;color:#6B3A1F;letter-spacing:2.5px;text-transform:uppercase;font-family:Georgia,serif}
-.lang-row{display:flex;padding:0 14px 12px;justify-content:center}
-.lang-select-wrap{position:relative;display:inline-block}
+.header-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:14px 14px 12px;gap:8px}
+.brand-block{display:flex;flex-direction:column;align-items:center;gap:5px}
+.brand-crest{height:32px;width:auto;display:block}
+.castle-title{font-size:11px;font-weight:700;color:#6B3A1F;letter-spacing:2.5px;text-transform:uppercase;font-family:Georgia,serif;white-space:nowrap}
+.lang-select-wrap{position:relative;display:inline-block;justify-self:end}
 .lang-select{appearance:none;-webkit-appearance:none;-moz-appearance:none;padding:8px 32px 8px 18px;border-radius:20px;border:none;background:#A0522D;color:#FDFAF5;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;min-height:36px;letter-spacing:.5px}
 .lang-select:active,.lang-select:focus{background:#6B3A1F;outline:none}
 .lang-caret{position:absolute;right:15px;top:50%;transform:translateY(-50%);color:#FDFAF5;font-size:12px;line-height:1;pointer-events:none;opacity:.85}
@@ -195,10 +196,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <div class="app">
   <div class="top-bar">
-    <div class="castle-title-row">
-      <div class="castle-title">&#127984; Schloss Mespelbrunn</div>
-    </div>
-    <div class="lang-row">
+    <div class="header-row">
+      <div></div>
+      <div class="brand-block">
+        <img class="brand-crest" src="wappen.png" width="27" height="32" alt="Wappen derer von Ingelheim genannt Echter von und zu Mespelbrunn">
+        <div class="castle-title">Schloss Mespelbrunn</div>
+      </div>
       <div class="lang-select-wrap">
         <select id="langSelect" class="lang-select" aria-label="Language"></select>
         <span class="lang-caret">&#9662;</span>
