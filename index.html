@@ -149,6 +149,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .welcome-crest{margin-bottom:34px;display:block;width:38vw;max-width:190px;min-width:130px;height:auto}
 .welcome-title{font-size:22px;font-weight:700;color:#6B3A1F;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;font-family:Georgia,serif;text-align:center}
 .welcome-sub{font-size:19px;color:#8B6F47;text-align:center;font-family:Georgia,serif}
+
+/* ADMIN-ZUGANG — dezentes, fest verankertes Symbol, auf jedem Screen sichtbar */
+#adminIconBtn{position:fixed;bottom:14px;right:14px;z-index:10002;width:34px;height:34px;border-radius:50%;background:rgba(107,58,31,.14);border:none;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.45;transition:opacity .2s}
+#adminIconBtn:hover,#adminIconBtn:focus{opacity:.9}
+#adminModal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(30,20,10,.45);z-index:10003;display:none;align-items:center;justify-content:center;padding:24px}
+#adminModal.show{display:flex}
+.admin-modal-box{background:#F5EDD9;border-radius:14px;padding:28px 24px;max-width:280px;width:100%;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.35)}
+.admin-modal-title{font-family:Georgia,serif;font-weight:700;color:#6B3A1F;font-size:16px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:16px}
+.admin-modal-box input{width:100%;padding:10px 12px;border:1px solid #C4A882;border-radius:8px;font-size:15px;margin-bottom:8px;box-sizing:border-box;font-family:inherit;background:#fff}
+.admin-error{color:#B23B3B;font-size:13px;min-height:16px;margin-bottom:6px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.admin-modal-actions{display:flex;gap:10px;justify-content:center;margin-top:6px}
+.admin-modal-actions button{padding:9px 18px;border:none;border-radius:8px;font-family:Georgia,serif;font-weight:700;cursor:pointer;font-size:14px}
+#adminCancelBtn{background:transparent;color:#8B6F47}
+#adminSubmitBtn{background:#6B3A1F;color:#F5EDD9}
 </style>
 </head>
 <body>
@@ -163,6 +177,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <img class="blocked-crest" src="wappen.png" width="150" height="176" alt="Wappen derer von Ingelheim genannt Echter von und zu Mespelbrunn">
   <div class="blocked-title" id="blockedTitle">Audioguide Timeout</div>
   <div class="blocked-sub" id="blockedSub">Thank you for your visit.</div>
+</div>
+
+<button id="adminIconBtn" aria-label="Admin" title="Admin">&#128273;</button>
+<div id="adminModal">
+  <div class="admin-modal-box">
+    <div class="admin-modal-title">Admin-Zugang</div>
+    <input type="password" id="adminPasswordInput" placeholder="Passwort" autocomplete="off">
+    <div class="admin-error" id="adminError"></div>
+    <div class="admin-modal-actions">
+      <button id="adminCancelBtn" type="button">Zurück</button>
+      <button id="adminSubmitBtn" type="button">OK</button>
+    </div>
+  </div>
 </div>
 
 <div class="app">
@@ -861,12 +888,52 @@ function showBlocked(title, sub){
 }
 
 function checkSessionExpiry(){
+  if(sessionStorage.getItem("adminAccess")==="1") return;
   const expiry = localStorage.getItem("sessionExpiry");
   if(expiry && Date.now() >= Number(expiry)){
     stopAll();
     showBlocked("Audioguide Timeout", "Thank you for your visit.");
   }
 }
+
+// --- Admin-Zugang ---
+// Dezentes, fest verankertes Symbol (sichtbar auf jedem Screen: Welcome-Splash,
+// Sperrbildschirm, laufende App). Richtiges Passwort hebt die 2h-Zeitprüfung für
+// diese Browser-Sitzung komplett auf -- sessionStorage statt localStorage, damit
+// beim Schließen der App/des Tabs der Admin-Zugang wieder weg ist und erneut das
+// Passwort verlangt wird. Besucher, die aus Neugier draufklicken, kommen mit dem
+// "Zurück"-Button einfach wieder raus, ohne dass irgendetwas passiert.
+const ADMIN_PASSWORD = "19Jagdhütte87";
+
+function openAdminModal(){
+  document.getElementById("adminPasswordInput").value = "";
+  document.getElementById("adminError").textContent = "";
+  document.getElementById("adminModal").classList.add("show");
+  document.getElementById("adminPasswordInput").focus();
+}
+function closeAdminModal(){
+  document.getElementById("adminModal").classList.remove("show");
+}
+function submitAdminPassword(){
+  const val = document.getElementById("adminPasswordInput").value;
+  if(val === ADMIN_PASSWORD){
+    sessionStorage.setItem("adminAccess", "1");
+    closeAdminModal();
+    const blocked = document.getElementById("blockedScreen");
+    if(blocked.classList.contains("show")){
+      blocked.classList.remove("show");
+      grantAccessAndBoot();
+    }
+  } else {
+    document.getElementById("adminError").textContent = "Falsches Passwort";
+  }
+}
+document.getElementById("adminIconBtn").addEventListener("click", openAdminModal);
+document.getElementById("adminCancelBtn").addEventListener("click", closeAdminModal);
+document.getElementById("adminSubmitBtn").addEventListener("click", submitAdminPassword);
+document.getElementById("adminPasswordInput").addEventListener("keydown", function(e){
+  if(e.key === "Enter") submitAdminPassword();
+});
 
 function grantAccessAndBoot(){
   setTimeout(()=>{
@@ -889,6 +956,11 @@ function grantAccessAndBoot(){
 }
 
 (function initAccess(){
+  if(sessionStorage.getItem("adminAccess") === "1"){
+    grantAccessAndBoot();
+    return;
+  }
+
   const params = new URLSearchParams(window.location.search);
   const freshScan = params.get(ENTRY_PARAM) === ENTRY_TOKEN;
 
