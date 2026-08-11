@@ -629,7 +629,7 @@ function audioFileFor(r, l){
 }
 
 // Räume mit vorhandenem Coverfoto (die übrigen behalten den Gradient-Platzhalter).
-const roomPhotos = new Set(["einführung","rittersaal","hof","kapelle","speisesaal","forsthaus"]);
+const roomPhotos = new Set(["einführung","rittersaal","hof","kapelle","speisesaal","forsthaus","ahnensaal","echter-zimmer","chinesischer-salon","fürstenzimmer"]);
 function photoFileFor(r){
   return "images/"+(fileKey[r.key]||r.key)+".jpg";
 }
