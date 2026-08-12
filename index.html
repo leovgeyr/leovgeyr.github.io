@@ -855,7 +855,7 @@ if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch
 // Lädt alle Audio- und Bild-Dateien vor, damit die App im Schloss (dicke Mauern,
 // oft kein Empfang) komplett offline funktioniert. Läuft nur, wenn Zugriff gewährt wurde.
 // CACHE_NAME muss exakt mit der CACHE-Konstante in sw.js übereinstimmen!
-const CACHE_NAME = "mespelbrunn-v3"; // muss mit sw.js CACHE übereinstimmen
+const CACHE_NAME = "mespelbrunn-v4"; // muss mit sw.js CACHE übereinstimmen
 function prefetchAllOffline(){
   if(!("caches" in window)) return;
   const langs = ["en","fr","es","it","ja","zh"];
