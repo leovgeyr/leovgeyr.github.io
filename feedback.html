@@ -40,6 +40,7 @@ form{display:flex;flex-direction:column;gap:20px}
 .star-rating input:checked ~ label,
 .star-rating label:hover,
 .star-rating label:hover ~ label{color:#A0522D}
+.star-rating{margin-bottom:12px}
 
 /* TEXT INPUTS */
 textarea,input[type=text]{width:100%;border:1px solid #D4B896;border-radius:8px;padding:12px 13px;font-size:14px;font-family:inherit;color:#2C1810;background:#EDE0C4;resize:vertical}
@@ -77,12 +78,10 @@ textarea::placeholder,input[type=text]::placeholder{color:#B8956A}
   <div class="content">
 
     <!-- Sterne-Bewertungen sind bewusst NICHT required: Beta-Feedback soll niedrigschwellig
-         bleiben, ein Formularzwang würde Nutzer eher abschrecken als zu mehr Feedback führen. -->
-    <form id="feedbackForm" action="https://formsubmit.co/lfgeyr@rocketmail.com" method="POST">
-      <input type="hidden" name="_subject" value="Audioguide Mespelbrunn — Beta Feedback">
-      <input type="hidden" name="_template" value="table">
-      <input type="hidden" name="_captcha" value="false">
-
+         bleiben, ein Formularzwang würde Nutzer eher abschrecken als zu mehr Feedback führen.
+         Jede Kategorie hat ihr eigenes Kommentarfeld, damit Anmerkungen klar zuordenbar bleiben
+         (statt einem einzigen Sammelfeld für alles). -->
+    <form id="feedbackForm">
       <div>
         <div class="field-label">Audio quality / Qualità audio</div>
         <div class="star-rating" role="radiogroup" aria-label="Audio quality / Qualità audio">
@@ -92,6 +91,7 @@ textarea::placeholder,input[type=text]::placeholder{color:#B8956A}
           <input type="radio" name="audioRating" id="audio2" value="2"><label for="audio2" title="2">★</label>
           <input type="radio" name="audioRating" id="audio1" value="1"><label for="audio1" title="1">★</label>
         </div>
+        <textarea name="audioComment" placeholder="Anything about the audio? / Qualcosa sull'audio?"></textarea>
       </div>
 
       <div>
@@ -103,11 +103,7 @@ textarea::placeholder,input[type=text]::placeholder{color:#B8956A}
           <input type="radio" name="lookRating" id="look2" value="2"><label for="look2" title="2">★</label>
           <input type="radio" name="lookRating" id="look1" value="1"><label for="look1" title="1">★</label>
         </div>
-      </div>
-
-      <div>
-        <label class="field-label" for="comment">Anything else? / Altro?</label>
-        <textarea id="comment" name="comment" placeholder="..."></textarea>
+        <textarea name="lookComment" placeholder="Anything about look & feel? / Qualcosa sull'aspetto?"></textarea>
       </div>
 
       <div>
@@ -137,14 +133,18 @@ var submitBtn = document.getElementById('submitBtn');
 var errorMsg = document.getElementById('errorMsg');
 var thanksScreen = document.getElementById('thanksScreen');
 
+// Ziel: Google Apps Script Web App, die jede Einreichung als Zeile in ein Google Sheet
+// schreibt (siehe Google-Apps-Script-Feedback.gs). Läuft komplett unabhängig vom
+// Audioguide selbst -- kein gemeinsamer Code, kein gemeinsamer State.
+var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8OPKsos1rMjYxPz2e4ieG--T7FAa46WAcq0Kft6GOOC0-BXza2J2SsO7fUQO04JuQ/exec";
+
 form.addEventListener('submit', function(e){
   e.preventDefault();
   errorMsg.classList.remove('show');
   submitBtn.disabled = true;
 
-  fetch('https://formsubmit.co/lfgeyr@rocketmail.com', {
+  fetch(SCRIPT_URL, {
     method: 'POST',
-    headers: { 'Accept': 'application/json' },
     body: new FormData(form)
   }).then(function(response){
     if (response.ok) {

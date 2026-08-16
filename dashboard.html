@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mespelbrunn Dashboard">
+<meta name="theme-color" content="#E8D9BA">
+<link rel="preload" as="image" href="wappen.png">
+<title>Schloss Mespelbrunn — Feedback Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F5EDD9;display:flex;align-items:flex-start;justify-content:center;min-height:100vh;min-height:100dvh}
+
+.app{width:100%;max-width:560px;min-height:100%;background:#F5EDD9;display:flex;flex-direction:column}
+
+.top-bar{flex-shrink:0;background:#EDE0C4;padding:env(safe-area-inset-top,0px) 0 0;border-bottom:1px solid #D4B896}
+.brand-block{display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px 16px 16px}
+.brand-crest{height:56px;width:auto;display:block}
+.castle-title{font-size:16px;font-weight:700;color:#2C1810;text-align:center;font-family:Georgia,serif}
+.castle-sub{font-size:13px;color:#8B6F47;text-align:center}
+
+.content{flex:1;padding:22px 20px calc(env(safe-area-inset-bottom,16px) + 22px)}
+
+/* GATE */
+#gate{display:flex;flex-direction:column;gap:14px;max-width:320px;margin:60px auto 0}
+#gate input{border:1px solid #D4B896;border-radius:8px;padding:12px 13px;font-size:14px;background:#EDE0C4;color:#2C1810}
+#gate button{padding:13px;border-radius:8px;border:none;background:#A0522D;color:#FDFAF5;font-size:14px;font-weight:700;cursor:pointer}
+#gateError{font-size:12px;color:#B23B3B;text-align:center;display:none}
+#gateError.show{display:block}
+
+#dash{display:none}
+#dash.show{display:block}
+
+.summary{display:flex;gap:12px;margin-bottom:24px}
+.stat-card{flex:1;background:#EDE0C4;border-radius:10px;padding:16px 12px;text-align:center;border:1px solid #D4B896}
+.stat-value{font-family:Georgia,serif;font-size:26px;font-weight:700;color:#6B3A1F}
+.stat-label{font-size:11px;color:#8B6F47;margin-top:4px}
+
+.entry{background:#EDE0C4;border-radius:10px;padding:14px 16px;margin-bottom:12px;border-left:3px solid #A0522D}
+.entry-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.entry-name{font-size:13px;font-weight:700;color:#2C1810}
+.entry-date{font-size:11px;color:#8B6F47}
+.entry-row{margin-bottom:6px}
+.entry-row-label{font-size:11px;color:#8B6F47;font-weight:700}
+.entry-stars{color:#A0522D;font-size:14px;letter-spacing:1px}
+.entry-comment{font-size:13px;color:#2C1810;margin-top:2px;line-height:1.4}
+
+.empty-msg,.loading-msg{text-align:center;color:#8B6F47;font-size:13px;padding:30px 0}
+.refresh-btn{display:block;width:100%;padding:12px;border-radius:8px;border:none;background:#A0522D;color:#FDFAF5;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:18px}
+
+.copyright{text-align:center;font-size:10px;color:#B8956A;padding:18px 0 0}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="top-bar">
+    <div class="brand-block">
+      <img class="brand-crest" src="wappen.png" width="61" height="72" alt="Wappen derer von Ingelheim genannt Echter von und zu Mespelbrunn">
+      <div class="castle-title">Feedback Dashboard</div>
+      <div class="castle-sub">Schloss Mespelbrunn Audio Guide</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div id="gate">
+      <input type="password" id="gatePassword" placeholder="Passwort">
+      <button id="gateSubmit">Anmelden</button>
+      <div id="gateError">Falsches Passwort.</div>
+    </div>
+
+    <div id="dash">
+      <button class="refresh-btn" id="refreshBtn">Aktualisieren</button>
+      <div id="dashBody"><div class="loading-msg">Lade...</div></div>
+    </div>
+
+    <div class="copyright">Schloss Mespelbrunn</div>
+  </div>
+</div>
+
+<script>
+// Komplett eigenständig vom Audioguide (index.html/sw.js) -- eigenes Passwort, eigener
+// Token, kein gemeinsamer Code/State. Fällt dieses Skript aus, bleibt der Audioguide
+// unberührt, und umgekehrt.
+var DASH_PASSWORD = "19Jagdhütte87";
+var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8OPKsos1rMjYxPz2e4ieG--T7FAa46WAcq0Kft6GOOC0-BXza2J2SsO7fUQO04JuQ/exec";
+var DASHBOARD_TOKEN = "2giszrqmksp1kx5d";
+
+var gate = document.getElementById('gate');
+var dash = document.getElementById('dash');
+var gatePassword = document.getElementById('gatePassword');
+var gateError = document.getElementById('gateError');
+
+function unlock(){
+  gate.style.display = 'none';
+  dash.classList.add('show');
+  loadData();
+}
+
+document.getElementById('gateSubmit').addEventListener('click', function(){
+  if(gatePassword.value === DASH_PASSWORD){
+    gateError.classList.remove('show');
+    unlock();
+  } else {
+    gateError.classList.add('show');
+  }
+});
+gatePassword.addEventListener('keydown', function(e){
+  if(e.key === 'Enter') document.getElementById('gateSubmit').click();
+});
+
+document.getElementById('refreshBtn').addEventListener('click', loadData);
+
+function stars(n){
+  n = parseInt(n, 10) || 0;
+  return '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n);
+}
+
+function fmtDate(iso){
+  try {
+    var d = new Date(iso);
+    return d.toLocaleString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
+  } catch(e){ return iso; }
+}
+
+function loadData(){
+  document.getElementById('dashBody').innerHTML = '<div class="loading-msg">Lade...</div>';
+  fetch(SCRIPT_URL + '?token=' + encodeURIComponent(DASHBOARD_TOKEN))
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(data.error){ throw new Error(data.error); }
+      render(data.entries || []);
+    })
+    .catch(function(){
+      document.getElementById('dashBody').innerHTML = '<div class="empty-msg">Fehler beim Laden. Bitte später erneut versuchen.</div>';
+    });
+}
+
+function render(entries){
+  var body = document.getElementById('dashBody');
+  if(entries.length === 0){
+    body.innerHTML = '<div class="empty-msg">Noch kein Feedback eingegangen.</div>';
+    return;
+  }
+
+  var audioSum = 0, audioCount = 0, lookSum = 0, lookCount = 0;
+  entries.forEach(function(e){
+    if(e.audioRating){ audioSum += Number(e.audioRating); audioCount++; }
+    if(e.lookRating){ lookSum += Number(e.lookRating); lookCount++; }
+  });
+  var audioAvg = audioCount ? (audioSum / audioCount).toFixed(1) : '–';
+  var lookAvg = lookCount ? (lookSum / lookCount).toFixed(1) : '–';
+
+  var html = '<div class="summary">'
+    + '<div class="stat-card"><div class="stat-value">' + entries.length + '</div><div class="stat-label">Bewertungen</div></div>'
+    + '<div class="stat-card"><div class="stat-value">' + audioAvg + '</div><div class="stat-label">Ø Audio</div></div>'
+    + '<div class="stat-card"><div class="stat-value">' + lookAvg + '</div><div class="stat-label">Ø Look & Feel</div></div>'
+    + '</div>';
+
+  entries.forEach(function(e){
+    html += '<div class="entry">'
+      + '<div class="entry-top"><span class="entry-name">' + (e.name ? escapeHtml(e.name) : 'Anonym') + '</span>'
+      + '<span class="entry-date">' + fmtDate(e.timestamp) + '</span></div>';
+    if(e.audioRating || e.audioComment){
+      html += '<div class="entry-row"><span class="entry-row-label">Audio </span><span class="entry-stars">' + stars(e.audioRating) + '</span>';
+      if(e.audioComment) html += '<div class="entry-comment">' + escapeHtml(e.audioComment) + '</div>';
+      html += '</div>';
+    }
+    if(e.lookRating || e.lookComment){
+      html += '<div class="entry-row"><span class="entry-row-label">Look & Feel </span><span class="entry-stars">' + stars(e.lookRating) + '</span>';
+      if(e.lookComment) html += '<div class="entry-comment">' + escapeHtml(e.lookComment) + '</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+
+  body.innerHTML = html;
+}
+
+function escapeHtml(s){
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+</script>
+
+</body>
+</html>
