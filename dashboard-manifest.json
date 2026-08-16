@@ -1,0 +1,22 @@
+{
+  "name": "Mespelbrunn Feedback Dashboard",
+  "short_name": "Mesp. Dashboard",
+  "description": "Internal feedback dashboard for the Schloss Mespelbrunn audio guide",
+  "start_url": "/dashboard.html",
+  "display": "standalone",
+  "background_color": "#F5EDD9",
+  "theme_color": "#E8D9BA",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "dashboard-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "dashboard-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
