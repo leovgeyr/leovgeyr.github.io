@@ -1,0 +1,22 @@
+{
+  "name": "Mespelbrunn Feedback",
+  "short_name": "Mesp. Feedback",
+  "description": "Feedback form for the Schloss Mespelbrunn audio guide",
+  "start_url": "/feedback.html",
+  "display": "standalone",
+  "background_color": "#F5EDD9",
+  "theme_color": "#E8D9BA",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "feedback-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "feedback-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
