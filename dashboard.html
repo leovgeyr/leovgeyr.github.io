@@ -34,10 +34,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 #dash{display:none}
 #dash.show{display:block}
 
-.summary{display:flex;gap:12px;margin-bottom:24px}
+:root{
+  --series-audio:#A0522D;      /* Sienna -- Markenfarbe, bestehend */
+  --series-look:#2A78D6;       /* Blau -- bewusst warm/kühl-Kontrast zu Sienna, CVD-sicher unterscheidbar */
+  --chart-surface:#EDE0C4;
+  --text-primary:#2C1810;
+  --text-secondary:#8B6F47;
+  --muted:#B8956A;
+  --gridline:#E4D5B0;
+  --baseline:#D4B896;
+}
+
+.summary{display:flex;gap:12px;margin-bottom:20px}
 .stat-card{flex:1;background:#EDE0C4;border-radius:10px;padding:16px 12px;text-align:center;border:1px solid #D4B896}
 .stat-value{font-family:Georgia,serif;font-size:26px;font-weight:700;color:#6B3A1F}
 .stat-label{font-size:11px;color:#8B6F47;margin-top:4px}
+
+/* CHARTS */
+.chart-card{background:var(--chart-surface);border:1px solid #D4B896;border-radius:10px;padding:16px 16px 10px;margin-bottom:14px}
+.chart-title{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:12px}
+.chart-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.chart-avg{margin-left:auto;font-family:Georgia,serif;font-size:15px;font-weight:700;color:var(--text-primary)}
+.bar-svg{display:block;width:100%;height:auto;overflow:visible}
+.bar-rect{transition:opacity .12s}
+.bar-rect:hover{opacity:.8}
+.bar-count{font-size:11px;font-weight:700;fill:var(--text-primary)}
+.bar-axis-label{font-size:10px;fill:var(--text-secondary)}
+.bar-tooltip{position:absolute;pointer-events:none;background:#2C1810;color:#FDFAF5;font-size:11px;font-weight:700;padding:4px 8px;border-radius:5px;transform:translate(-50%,-130%);white-space:nowrap;opacity:0;transition:opacity .1s;z-index:5}
+.bar-tooltip.show{opacity:1}
+.chart-wrap{position:relative}
 
 .entry{background:#EDE0C4;border-radius:10px;padding:14px 16px;margin-bottom:12px;border-left:3px solid #A0522D}
 .entry-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
@@ -140,6 +165,62 @@ function loadData(){
     });
 }
 
+// Balkendiagramm der Sternverteilung (1-5) als SVG. Eine Kategorie = eine Farbe,
+// dünne Balken mit abgerundeten Enden, Baseline, dezente Gridlines, Hover-Tooltip
+// + direkte Zahl-Label (bei nur 5 Balken unproblematisch, siehe dataviz-Skill).
+function barChartSvg(counts, color, chartId){
+  var W = 480, H = 150;
+  var padL = 8, padR = 8, padT = 20, padB = 22;
+  var plotW = W - padL - padR, plotH = H - padT - padB;
+  var maxCount = Math.max.apply(null, counts.concat([1]));
+  var n = counts.length;
+  var slot = plotW / n;
+  var barW = Math.min(34, slot * 0.5);
+
+  var grid = '';
+  var steps = 3;
+  for(var g = 0; g <= steps; g++){
+    var gy = padT + plotH - (plotH * g / steps);
+    grid += '<line x1="' + padL + '" y1="' + gy + '" x2="' + (W - padR) + '" y2="' + gy + '" stroke="var(--gridline)" stroke-width="1"/>';
+  }
+
+  var bars = '', labels = '';
+  for(var i = 0; i < n; i++){
+    var cx = padL + slot * i + slot / 2;
+    var h = maxCount ? (counts[i] / maxCount) * plotH : 0;
+    var y = padT + plotH - h;
+    var x = cx - barW / 2;
+    bars += '<rect class="bar-rect" data-count="' + counts[i] + '" data-label="' + (i+1) + ' Stern' + (i===0?'':'e') + '" '
+      + 'x="' + x + '" y="' + y + '" width="' + barW + '" height="' + Math.max(h, 2) + '" rx="4" ry="4" fill="' + color + '" style="cursor:pointer"/>';
+    if(counts[i] > 0){
+      bars += '<text class="bar-count" x="' + cx + '" y="' + (y - 6) + '" text-anchor="middle">' + counts[i] + '</text>';
+    }
+    labels += '<text class="bar-axis-label" x="' + cx + '" y="' + (H - 6) + '" text-anchor="middle">' + (i+1) + '★</text>';
+  }
+  var baseline = '<line x1="' + padL + '" y1="' + (padT+plotH) + '" x2="' + (W-padR) + '" y2="' + (padT+plotH) + '" stroke="var(--baseline)" stroke-width="1.5"/>';
+
+  return '<svg class="bar-svg" id="' + chartId + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Verteilung der Sternebewertungen">'
+    + grid + baseline + bars + labels + '</svg>';
+}
+
+function wireBarTooltips(svgId, tooltipEl){
+  var svg = document.getElementById(svgId);
+  if(!svg) return;
+  var rects = svg.querySelectorAll('.bar-rect');
+  rects.forEach(function(rect){
+    rect.addEventListener('mousemove', function(e){
+      var wrapRect = svg.parentElement.getBoundingClientRect();
+      tooltipEl.textContent = rect.getAttribute('data-count') + '× ' + rect.getAttribute('data-label');
+      tooltipEl.style.left = (e.clientX - wrapRect.left) + 'px';
+      tooltipEl.style.top = (e.clientY - wrapRect.top) + 'px';
+      tooltipEl.classList.add('show');
+    });
+    rect.addEventListener('mouseleave', function(){
+      tooltipEl.classList.remove('show');
+    });
+  });
+}
+
 function render(entries){
   var body = document.getElementById('dashBody');
   if(entries.length === 0){
@@ -148,9 +229,18 @@ function render(entries){
   }
 
   var audioSum = 0, audioCount = 0, lookSum = 0, lookCount = 0;
+  var audioCounts = [0,0,0,0,0], lookCounts = [0,0,0,0,0];
   entries.forEach(function(e){
-    if(e.audioRating){ audioSum += Number(e.audioRating); audioCount++; }
-    if(e.lookRating){ lookSum += Number(e.lookRating); lookCount++; }
+    if(e.audioRating){
+      audioSum += Number(e.audioRating); audioCount++;
+      var ai = Math.min(5, Math.max(1, parseInt(e.audioRating,10))) - 1;
+      audioCounts[ai]++;
+    }
+    if(e.lookRating){
+      lookSum += Number(e.lookRating); lookCount++;
+      var li = Math.min(5, Math.max(1, parseInt(e.lookRating,10))) - 1;
+      lookCounts[li]++;
+    }
   });
   var audioAvg = audioCount ? (audioSum / audioCount).toFixed(1) : '–';
   var lookAvg = lookCount ? (lookSum / lookCount).toFixed(1) : '–';
@@ -159,6 +249,16 @@ function render(entries){
     + '<div class="stat-card"><div class="stat-value">' + entries.length + '</div><div class="stat-label">Bewertungen</div></div>'
     + '<div class="stat-card"><div class="stat-value">' + audioAvg + '</div><div class="stat-label">Ø Audio</div></div>'
     + '<div class="stat-card"><div class="stat-value">' + lookAvg + '</div><div class="stat-label">Ø Look & Feel</div></div>'
+    + '</div>';
+
+  html += '<div class="chart-card">'
+    + '<div class="chart-title"><span class="chart-dot" style="background:var(--series-audio)"></span>Audio quality — Verteilung<span class="chart-avg">Ø ' + audioAvg + '</span></div>'
+    + '<div class="chart-wrap">' + barChartSvg(audioCounts, 'var(--series-audio)', 'chartAudio') + '<div class="bar-tooltip" id="ttAudio"></div></div>'
+    + '</div>';
+
+  html += '<div class="chart-card">'
+    + '<div class="chart-title"><span class="chart-dot" style="background:var(--series-look)"></span>Look & Feel — Verteilung<span class="chart-avg">Ø ' + lookAvg + '</span></div>'
+    + '<div class="chart-wrap">' + barChartSvg(lookCounts, 'var(--series-look)', 'chartLook') + '<div class="bar-tooltip" id="ttLook"></div></div>'
     + '</div>';
 
   entries.forEach(function(e){
@@ -179,6 +279,8 @@ function render(entries){
   });
 
   body.innerHTML = html;
+  wireBarTooltips('chartAudio', document.getElementById('ttAudio'));
+  wireBarTooltips('chartLook', document.getElementById('ttLook'));
 }
 
 function escapeHtml(s){
