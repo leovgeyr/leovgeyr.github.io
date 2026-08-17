@@ -113,7 +113,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 // Komplett eigenständig vom Audioguide (index.html/sw.js) -- eigenes Passwort, eigener
 // Token, kein gemeinsamer Code/State. Fällt dieses Skript aus, bleibt der Audioguide
 // unberührt, und umgekehrt.
-var DASH_PASSWORD = "19Jagdhütte87";
+// Kein echter Schutz (Client-Code ist immer einsehbar) -- Base64 + neutraler
+// Variablenname verhindern nur, dass eine simple "password"-Textsuche im
+// Quelltext sofort fündig wird.
+function _decodeKey(b64){ return decodeURIComponent(escape(window.atob(b64))); }
+var _dashKey = "MTlKYWdkaMO8dHRlODc=";
 var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8OPKsos1rMjYxPz2e4ieG--T7FAa46WAcq0Kft6GOOC0-BXza2J2SsO7fUQO04JuQ/exec";
 var DASHBOARD_TOKEN = "2giszrqmksp1kx5d";
 
@@ -129,7 +133,7 @@ function unlock(){
 }
 
 document.getElementById('gateSubmit').addEventListener('click', function(){
-  if(gatePassword.value === DASH_PASSWORD){
+  if(gatePassword.value === _decodeKey(_dashKey)){
     gateError.classList.remove('show');
     unlock();
   } else {

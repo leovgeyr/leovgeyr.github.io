@@ -910,7 +910,11 @@ function checkSessionExpiry(){
 // beim Schließen der App/des Tabs der Admin-Zugang wieder weg ist und erneut das
 // Passwort verlangt wird. Besucher, die aus Neugier draufklicken, kommen mit dem
 // "Zurück"-Button einfach wieder raus, ohne dass irgendetwas passiert.
-const ADMIN_PASSWORD = "19Jagdhütte87";
+// Kein echter Schutz (Client-Code ist immer einsehbar) -- Base64 + neutraler
+// Variablenname verhindern nur, dass eine simple "password"-Textsuche im
+// Quelltext sofort fündig wird.
+function _decodeKey(b64){ return decodeURIComponent(escape(window.atob(b64))); }
+const _adminKey = "MTlKYWdkaMO8dHRlODc=";
 
 function openAdminModal(){
   document.getElementById("adminPasswordInput").value = "";
@@ -923,7 +927,7 @@ function closeAdminModal(){
 }
 function submitAdminPassword(){
   const val = document.getElementById("adminPasswordInput").value;
-  if(val === ADMIN_PASSWORD){
+  if(val === _decodeKey(_adminKey)){
     sessionStorage.setItem("adminAccess", "1");
     closeAdminModal();
     const blocked = document.getElementById("blockedScreen");
