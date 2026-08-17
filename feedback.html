@@ -63,6 +63,8 @@ textarea::placeholder,input[type=text]::placeholder{color:#B8956A}
 #thanksScreen{display:none;flex-direction:column;align-items:center;gap:14px;padding:40px 0}
 #thanksScreen.show{display:flex}
 
+.privacy-note{font-size:10.5px;color:#8B6F47;line-height:1.5;text-align:center;padding:2px 6px 0}
+
 .copyright{text-align:center;font-size:10px;color:#B8956A;padding:18px 0 0;letter-spacing:.3px}
 </style>
 </head>
@@ -108,14 +110,11 @@ textarea::placeholder,input[type=text]::placeholder{color:#B8956A}
         <textarea name="lookComment" placeholder="Anything about look & feel? / Qualcosa sull'aspetto?"></textarea>
       </div>
 
-      <div>
-        <label class="field-label" for="name">Name (optional)</label>
-        <input type="text" id="name" name="name" placeholder="...">
-      </div>
-
       <button type="submit" class="submit-btn" id="submitBtn">Send feedback / Invia feedback</button>
 
       <div class="status-msg error" id="errorMsg">Something went wrong — please try again. / Qualcosa è andato storto — riprova.</div>
+
+      <div class="privacy-note">Your ratings and comments are stored anonymously in a private spreadsheet and used only to improve this audio guide — never shared publicly or sold.<br>Le tue valutazioni e i tuoi commenti vengono salvati in forma anonima in un foglio privato e usati solo per migliorare questa audioguida — mai condivisi pubblicamente né venduti.</div>
     </form>
 
     <div id="thanksScreen">
