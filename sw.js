@@ -1,4 +1,4 @@
-const CACHE = "mespelbrunn-v4"; // muss mit index.html CACHE_NAME übereinstimmen
+const CACHE = "mespelbrunn-v5"; // muss mit index.html CACHE_NAME übereinstimmen
 const FILES = ["/", "/index.html", "/manifest.json", "/icon.png"];
 
 self.addEventListener("install", e => {
